@@ -18,7 +18,7 @@ end
 
 $stdout.sync = true
 now = Time.now.getutc
-if now < STARTPROLOG or now > CLOSECUP
+if now < PROLOG.begin or now > CUP.end
     puts "#{now}: Not yet time..."
     exit
 end
@@ -27,24 +27,24 @@ if now.wday.between?(1,DOW-1)
 else
     getstart = now.beginning_of_week
 end
-if getstart < STARTPROLOG
-    getstart = STARTPROLOG
+if getstart < PROLOG.begin
+    getstart = PROLOG.begin
 end
 getend = now.end_of_week
-if getend > CLOSECUP
-    getend = CLOSECUP
+if getend > CUP.end
+    getend = CUP.end
 end
 p getstart
 p getend
 p now
 
 conn = HTTPClient.new
-db = SQLite3::Database.new("2019.db")
+db = SQLite3::Database.new(DB)
 url = "https://www.strava.com/api/v3/athlete/activities"
 p url
 db.execute("DELETE FROM log WHERE date>'#{getstart.iso8601}' and date<'#{getend.iso8601}'")
 
-db.execute("SELECT runnerid, sid, reftoken, runnername, teamid, goal FROM runners WHERE reftoken IS NOT NULL") do |r|
+db.execute("SELECT runnerid, runnerid, reftoken, runnername, teamid, goal FROM runners WHERE reftoken IS NOT NULL") do |r|
     rid, sid, reftoken, rname, tid, goal = r 
     puts "#{rid}, #{sid}: #{rname}"
     token = auth(reftoken)
