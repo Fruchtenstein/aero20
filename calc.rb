@@ -103,13 +103,13 @@ end
 
 now = Time.now.getutc
 
-if now < PROLOG.begin or now > CHAMP.end
+if now < PROLOG.begin or now > (CHAMP.end + 2.days)
     puts "#{now}: Not yet time..."
     exit
 end
 
-if now >= PROLOG.begin and now <= PROLOG.end+2.days
-  if now.wday.between?(1, DOW-1)
+if now >= PROLOG.begin and now <= (PROLOG.end + 2.days)
+  if now.wday.between?(1, DOW-1) and 1.week.ago.getutc.beginning_of_week >= PROLOG.begin
     calcwlog(1.week.ago)
     calcwonders(1.week.ago)
   end
@@ -117,8 +117,8 @@ if now >= PROLOG.begin and now <= PROLOG.end+2.days
   calcwonders(now)
 end
 
-if now.wday.between?(1, DOW-1) and 1.week.ago.getutc.beginning_of_week >= CHAMP.begin and 1.week.ago.getutc.beginning_of_week <= CHAMP.end
-  if now.wday.between?(1, DOW-1)
+if now >= CHAMP.begin and now <= (CHAMP.end + 2.days)
+  if now.wday.between?(1, DOW-1) and 1.week.ago.getutc.beginning_of_week >= CHAMP.begin
     calcwlog(1.week.ago)
     calcwonders(1.week.ago)
     calcpoints(1.week.ago)

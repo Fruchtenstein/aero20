@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -W0
+#!/usr/bin/ruby -W1
 # coding: utf-8
 require 'sqlite3'
 require 'active_support'
@@ -9,7 +9,7 @@ require_relative './config.rb'
 
 def printweek (w)
     output = ""
-    db = SQLite3::Database.new("2019.db")
+    db = SQLite3::Database.new(DB)
     teams = db.execute("SELECT teams.teamid, points, pcts, teamname  FROM points,teams WHERE points.teamid=teams.teamid AND week=#{w} ORDER BY points DESC")
     output +=   "<center>\n"
     output +=   "    <br />\n"
@@ -45,25 +45,13 @@ end
 
 $stdout.sync = true
 now = Time.now.getutc
-if now < STARTPROLOG or now > ENDCUP
+if now < PROLOG.begin or now > (CHAMP.end + 2.days)
     puts "#{now}: Not yet time..."
     exit
 end
-if now.wday.between?(1,DOW-1)
-    getstart = 1.week.ago.getutc.beginning_of_week
-else
-    getstart = now.beginning_of_week
-end
-if getstart < STARTPROLOG
-    getstart = STARTPROLOG
-end
-getend = now.end_of_week
-if getend > ENDCUP
-    getend = ENDCUP
-end
 
-today = DateTime.parse(now.to_s)
-week = today.cweek
+week = now.to_date.cweek.to_i
+
 prolog = ""
 champ = ""
 cup = ""
@@ -79,16 +67,16 @@ users3_erb = ERB.new(File.read('users3.html.erb'))
 users4_erb = ERB.new(File.read('users4.html.erb'))
 statistics_erb = ERB.new(File.read('statistics.html.erb'))
 
-db = SQLite3::Database.new("2019.db")
+db = SQLite3::Database.new(DB)
 
 ### Process index.html
-if now > STARTPROLOG #and now < 7.days.after(CLOSEPROLOG)
+if now > PROLOG.begin #and now < 7.days.after(CLOSEPROLOG)
     prolog += "<center>\n"
-    prolog += "<h1>Пролог (неделя 1)</h1>\n"
+    prolog += "<h1>Пролог</h1>\n"
     prolog += "</center>\n"
     prolog += "<div class=\"datagrid\">\n"
     prolog += "<table>\n"
-    prolog += "<thead><tr><th>Имя</th><th>Команда</th><th>Объемы 2018 (км/нед)</th><th>Результат (км)</th></tr></thead>\n"
+    prolog += "<thead><tr><th>Имя</th><th>Команда</th><th>Объемы 2019 (км/нед)</th><th>Результат (км)</th></tr></thead>\n"
     prolog += "<tbody>\n"
     
     teams = db.execute("SELECT * FROM teams")
@@ -96,9 +84,10 @@ if now > STARTPROLOG #and now < 7.days.after(CLOSEPROLOG)
     odd = true
     runners = db.execute("SELECT runnerid,runnername,7*goal/365,teamid FROM runners")
     runners.each do |r|
-        r << db.execute("SELECT COALESCE(SUM(distance),0) AS dist FROM log WHERE runnerid=#{r[0]} AND date>'#{STARTPROLOG.iso8601}' AND date<'#{ENDPROLOG.iso8601}'")[0][0]
+        r << db.execute("SELECT COALESCE(SUM(distance),0) AS dist FROM log WHERE runnerid=#{r[0]} AND date>'#{PROLOG.begin.iso8601}' AND date<'#{PROLOG.end.iso8601}'")[0][0]
     end
     runners.sort! { |x,y| y[4] <=> x[4] }
+    p runners
     runners.each do |r|
 #        if now > CLOSEPROLOG
 #            points = case runners.index(r)
@@ -122,7 +111,7 @@ if now > STARTPROLOG #and now < 7.days.after(CLOSEPROLOG)
     prolog += "</table></div>\n"
 end
 
-if now > STARTCHM
+if now > CHAMP.begin
     w = Date.today.cweek
     p w
     if Date.today.wday.between?(1, DOW-1)
@@ -153,15 +142,15 @@ if now > STARTCHM
     champ +=   "<br />\n"
     champ += printweek w
     champ +=   "<br />\n"
-    [*STARTCHM.to_date.cweek..(Date.today.cweek-1)].reverse_each do |w|
+    [*CHAMP.begin.to_date.cweek..(Date.today.cweek-1)].reverse_each do |w|
          p w
          champ += printweek w
     end
 end
 
-if now > STARTCUP
+if now > CUP.begin
   w = Date.today.cweek.to_i
-  start_cup_week = STARTCUP.to_date.cweek.to_i
+  start_cup_week = CUP.begin.to_date.cweek.to_i
   final_week = start_cup_week + 4
   cup_week = w - start_cup_week + 1
   (1..3).each do |i|
@@ -223,10 +212,10 @@ runners.each do |r|
     data += "<table>\n"
     data += "<tbody>\n"
     data += "<tr><td><b>Имя</b></td><td>#{r[1]}</td></tr>"
-    data += "<tr><td><b>Команда</b></td><td>#{r[2]==0 ? "-" : teams[r[2]-1][1]}</td></tr>"
-    data += "<tr><td><b>Недельный план</b></td><td>#{(7*r[3]/365).round(2)}</td></tr>"
+    data += "<tr><td><b>Команда</b></td><td>#{r[2]==0 ? "-" : teams[r[4]-1][1]}</td></tr>"
+    data += "<tr><td><b>Недельный план</b></td><td>#{(7*r[5]/365).round(2)}</td></tr>"
     data += "<tr><td><b>Достижения</b></td><td>#{note}</td></tr>"
-    data += "<tr><td><b>Профиль на Страве</b></td><td><a href=\"https://strava.com/athletes/#{r[5]}\">https://strava.com/athletes/#{r[5]}</a></td></tr>"
+    data += "<tr><td><b>Профиль на Страве</b></td><td><a href=\"https://strava.com/athletes/#{r[0]}\">https://strava.com/athletes/#{r[0]}</a></td></tr>"
     data += "</tbody>\n"
     data += "</table>\n"
 
@@ -251,7 +240,7 @@ runners.each do |r|
                 d = db.execute("SELECT SUM(distance) FROM log WHERE runnerid=#{r[0]} AND date>'#{bow}' AND date<'#{eow}'")[0][0]
                 a += d.nil?? [0] : [d]
             end
-            norm = (7*r[3]/365).round(2)
+            norm = (7*r[5]/365).round(2)
             ymax = [a.max*1.1, norm*1.1].max
             plot.yrange "[0:#{ymax}]"
             p "+++++ #{r[0]} #{r[1]} ",weeks, a
@@ -294,7 +283,7 @@ runners.each do |r|
                 ds.linewidth = 2
                 ds.title = r[1]+"="+a[-1].round(2).to_s+" км"
             end
-            norm = (7*r[3]/365).round(2)
+            norm = (7*r[5]/365).round(2)
             plot.data << Gnuplot::DataSet.new(norm.to_s+"*x") do |ds|
                 ds.with = "lines lt rgb \"blue\""
                 ds.linewidth = 1
@@ -315,7 +304,8 @@ data += "<tbody>\n"
 data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2019 (км)</th><th>Объемы 2019 (%)</th><th>Объемы 2018 (км)</th><th>Команда</th></tr></thead>\n"
 odd = true
 i = 0
-db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid GROUP BY runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid GROUP BY runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) FROM runners r JOIN teams USING (teamid) ORDER BY d DESC") do |r|
+db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) FROM runners r JOIN teams USING (teamid) ORDER BY d DESC") do |r|
+  p r
   note = db.execute("SELECT title FROM titles WHERE runnerid=#{r[0]}").join("<br />")
   if odd
     data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
@@ -341,7 +331,7 @@ data += "<tbody>\n"
 data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2019 (%)</th><th>Объемы 2019 (км)</th><th>Объемы 2018 (км)</th><th>Команда</th></tr></thead>\n"
 odd = true
 i = 0
-db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid GROUP BY runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid GROUP BY runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) p FROM runners r JOIN teams USING (teamid) ORDER BY p DESC") do |r|
+db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) p FROM runners r JOIN teams USING (teamid) ORDER BY p DESC") do |r|
   note = db.execute("SELECT title FROM titles WHERE runnerid=#{r[0]}").join("<br />")
   if odd
     data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[5].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
@@ -367,7 +357,7 @@ data += "<tbody>\n"
 data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2018 (км)</th><th>Объемы 2019 (км)</th><th>Объемы 2019 (%)</th><th>Команда</th></tr></thead>\n"
 odd = true
 i = 0
-db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid GROUP BY runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid GROUP BY runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) p FROM runners r JOIN teams USING (teamid) ORDER BY g DESC") do |r|
+db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) p FROM runners r JOIN teams USING (teamid) ORDER BY g DESC") do |r|
   note = db.execute("SELECT title FROM titles WHERE runnerid=#{r[0]}").join("<br />")
   if odd
     data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[4].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[2]}</td></tr>\n"
@@ -400,9 +390,9 @@ db.execute("SELECT * FROM teams ORDER BY teamid") do |t|
     db.execute("SELECT * FROM runners WHERE teamid=#{t[0]} ORDER BY goal DESC") do |r|
         note = db.execute("SELECT title FROM titles WHERE runnerid=#{r[0]}").join("<br />")
         if odd
-            data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[3].round(2)}</td><td>#{note}</td></tr>\n"
+            data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[5].round(2)}</td><td>#{note}</td></tr>\n"
         else
-            data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[3].round(2)}</td><td>#{note}</td></tr>\n"
+            data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[5].round(2)}</td><td>#{note}</td></tr>\n"
         end
         odd = !odd
     end
@@ -414,7 +404,7 @@ end
 File.open("html/users4.html", 'w') { |f| f.write(users4_erb.result(binding)) }
 
 ### Process teams*.html
-[*STARTCHM.to_date.cweek..(Date.today.cweek)].reverse_each do |w|
+[*CHAMP.begin.to_date.cweek..(Date.today.cweek)].reverse_each do |w|
      puts "teams#{w}...."
      p w
      bow = DateTime.parse(Date.commercial(2019,w).to_s).beginning_of_week
@@ -439,15 +429,15 @@ File.open("html/users4.html", 'w') { |f| f.write(users4_erb.result(binding)) }
          runners = db.execute("SELECT * FROM runners WHERE teamid=#{t[0]} ORDER BY goal DESC")
          runners.each do |r|
              dist = db.execute("SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=#{r[0]} AND date>'#{bow.iso8601}' AND date<'#{eow.iso8601}'")[0][0]
-             goal = 7*r[3]/365
+             goal = 7*r[5]/365
              pct = (dist/goal)*100
              sum_dist += dist
              sum_pct += pct
              sum_goal += goal
              if odd
-                 data += "  <tr><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{goal.round(2)}</td><td><a href=\"https://strava.com/athletes/#{r[5]}#interval?interval=#{STARTCHM.year.to_s+w.to_s.rjust(2,"0")}&interval_type=week&chart_type=miles&year_offset=0\">#{dist.round(2)}</a></td><td>#{pct.round(2)}</td></tr>\n"
+                 data += "  <tr><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{goal.round(2)}</td><td><a href=\"https://strava.com/athletes/#{r[5]}#interval?interval=#{CHAMP.begin.year.to_s+w.to_s.rjust(2,"0")}&interval_type=week&chart_type=miles&year_offset=0\">#{dist.round(2)}</a></td><td>#{pct.round(2)}</td></tr>\n"
              else
-                 data += "  <tr class=\"alt\"><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{goal.round(2)}</td><td><a href=\"http://strava.com/athletes/#{r[5]}#interval?interval=#{STARTCHM.year.to_s+w.to_s.rjust(2,"0")}&interval_type=week&chart_type=miles&year_offset=0\">#{dist.round(2)}</a></td><td>#{pct.round(2)}</td></tr>\n"
+                 data += "  <tr class=\"alt\"><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{goal.round(2)}</td><td><a href=\"http://strava.com/athletes/#{r[5]}#interval?interval=#{CHAMP.begin.year.to_s+w.to_s.rjust(2,"0")}&interval_type=week&chart_type=miles&year_offset=0\">#{dist.round(2)}</a></td><td>#{pct.round(2)}</td></tr>\n"
              end
              odd = !odd
          end
@@ -458,7 +448,7 @@ File.open("html/users4.html", 'w') { |f| f.write(users4_erb.result(binding)) }
      end
      box  = "<nav class=\"sub\">\n"
      box += "      <ul>\n"
-     (STARTCHM.to_date.cweek..Date.today.cweek).each do |wk|
+     (CHAMP.begin.to_date.cweek..Date.today.cweek).each do |wk|
          if wk == w
              box += "        <li class=\"active\"><span>#{wk} неделя</span></li>\n"
          else
@@ -471,7 +461,7 @@ File.open("html/users4.html", 'w') { |f| f.write(users4_erb.result(binding)) }
 end
 
 ### Process statistics*.html
-[*STARTCHM.to_date.cweek..(Date.today.cweek)].reverse_each do |w|
+[*CHAMP.begin.to_date.cweek..(Date.today.cweek)].reverse_each do |w|
      puts "statistics#{w}...."
      p w
      bow = DateTime.parse(Date.commercial(2019,w).to_s).beginning_of_week
@@ -648,7 +638,7 @@ end
 
      box  = "<nav class=\"sub\">\n"
      box += "      <ul>\n"
-     (STARTCHM.to_date.cweek..Date.today.cweek).each do |wk|
+     (CHAMP.begin.to_date.cweek..Date.today.cweek).each do |wk|
          if wk == w
              box += "        <li class=\"active\"><span>#{wk} неделя</span></li>\n"
          else
@@ -660,7 +650,7 @@ end
      File.open("html/statistics#{w}.html", 'w') { |f| f.write(statistics_erb.result(binding)) }
 end
 
-(STARTCHM.to_date.cweek..Date.today.cweek).each do |w|
+(CHAMP.begin.to_date.cweek..Date.today.cweek).each do |w|
     p "plot for week #{w}"
     Gnuplot.open do |gp|
         Gnuplot::Plot.new(gp) do |plot|
