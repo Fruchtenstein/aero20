@@ -76,7 +76,7 @@ if now > PROLOG.begin #and now < 7.days.after(CLOSEPROLOG)
     prolog += "</center>\n"
     prolog += "<div class=\"datagrid\">\n"
     prolog += "<table>\n"
-    prolog += "<thead><tr><th>Имя</th><th>Команда</th><th>Объемы 2020 (км/нед)</th><th>Результат (км)</th></tr></thead>\n"
+    prolog += "<thead><tr><th>Имя</th><th>Команда</th><th>Объемы 2019 (км/нед)</th><th>Результат (км)</th></tr></thead>\n"
     prolog += "<tbody>\n"
     
     teams = db.execute("SELECT * FROM teams")
