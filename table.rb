@@ -76,7 +76,7 @@ if now > PROLOG.begin #and now < 7.days.after(CLOSEPROLOG)
     prolog += "</center>\n"
     prolog += "<div class=\"datagrid\">\n"
     prolog += "<table>\n"
-    prolog += "<thead><tr><th>Имя</th><th>Команда</th><th>Объемы 2019 (км/нед)</th><th>Результат (км)</th></tr></thead>\n"
+    prolog += "<thead><tr><th>Имя</th><th>Команда</th><th>Объемы 2020 (км/нед)</th><th>Результат (км)</th></tr></thead>\n"
     prolog += "<tbody>\n"
     
     teams = db.execute("SELECT * FROM teams")
@@ -235,8 +235,8 @@ runners.each do |r|
             plot.grid 'y'
             a = [0]
             weeks.each do |w|
-                bow = DateTime.parse(Date.commercial(2019,w).to_s).beginning_of_week.iso8601
-                eow = DateTime.parse(Date.commercial(2019,w).to_s).end_of_week.iso8601
+                bow = DateTime.parse(Date.commercial(2020,w).to_s).beginning_of_week.iso8601
+                eow = DateTime.parse(Date.commercial(2020,w).to_s).end_of_week.iso8601
                 d = db.execute("SELECT SUM(distance) FROM log WHERE runnerid=#{r[0]} AND date>'#{bow}' AND date<'#{eow}'")[0][0]
                 a += d.nil?? [0] : [d]
             end
@@ -271,8 +271,8 @@ runners.each do |r|
             plot.grid 'y'
             a = [0]
             weeks.each do |w|
-                bow = DateTime.parse(Date.commercial(2019,w).to_s).beginning_of_week.iso8601
-                eow = DateTime.parse(Date.commercial(2019,w).to_s).end_of_week.iso8601
+                bow = DateTime.parse(Date.commercial(2020,w).to_s).beginning_of_week.iso8601
+                eow = DateTime.parse(Date.commercial(2020,w).to_s).end_of_week.iso8601
                 d = db.execute("SELECT SUM(distance) FROM log WHERE runnerid=#{r[0]} AND date<'#{eow}'")[0][0]
                 a += d.nil?? [0] : [d]
             end
@@ -301,7 +301,7 @@ data += "</center>\n"
 data += "<div class=\"datagrid\">\n"
 data += "<table>\n"
 data += "<tbody>\n"
-data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2019 (км)</th><th>Объемы 2019 (%)</th><th>Объемы 2018 (км)</th><th>Команда</th></tr></thead>\n"
+data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2020 (км)</th><th>Объемы 2020 (%)</th><th>Объемы 2019 (км)</th><th>Команда</th></tr></thead>\n"
 odd = true
 i = 0
 db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) FROM runners r JOIN teams USING (teamid) ORDER BY d DESC") do |r|
@@ -328,7 +328,7 @@ data += "</center>\n"
 data += "<div class=\"datagrid\">\n"
 data += "<table>\n"
 data += "<tbody>\n"
-data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2019 (%)</th><th>Объемы 2019 (км)</th><th>Объемы 2018 (км)</th><th>Команда</th></tr></thead>\n"
+data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2020 (%)</th><th>Объемы 2020 (км)</th><th>Объемы 2019 (км)</th><th>Команда</th></tr></thead>\n"
 odd = true
 i = 0
 db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) p FROM runners r JOIN teams USING (teamid) ORDER BY p DESC") do |r|
@@ -354,7 +354,7 @@ data += "</center>\n"
 data += "<div class=\"datagrid\">\n"
 data += "<table>\n"
 data += "<tbody>\n"
-data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2018 (км)</th><th>Объемы 2019 (км)</th><th>Объемы 2019 (%)</th><th>Команда</th></tr></thead>\n"
+data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2019 (км)</th><th>Объемы 2020 (км)</th><th>Объемы 2020 (%)</th><th>Команда</th></tr></thead>\n"
 odd = true
 i = 0
 db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) p FROM runners r JOIN teams USING (teamid) ORDER BY g DESC") do |r|
@@ -384,7 +384,7 @@ db.execute("SELECT * FROM teams ORDER BY teamid") do |t|
     data += "<div class=\"datagrid\">\n"
     data += "<table>\n"
     data += "<tbody>\n"
-    data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2018 (км/год)</th><th>Примечания</th></tr></thead>\n"
+    data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2019 (км/год)</th><th>Примечания</th></tr></thead>\n"
     odd = true
     i = 0
     db.execute("SELECT * FROM runners WHERE teamid=#{t[0]} ORDER BY goal DESC") do |r|
@@ -407,8 +407,8 @@ File.open("html/users4.html", 'w') { |f| f.write(users4_erb.result(binding)) }
 [*CHAMP.begin.to_date.cweek..(Date.today.cweek)].reverse_each do |w|
      puts "teams#{w}...."
      p w
-     bow = DateTime.parse(Date.commercial(2019,w).to_s).beginning_of_week
-     eow = DateTime.parse(Date.commercial(2019,w).to_s).end_of_week
+     bow = DateTime.parse(Date.commercial(2020,w).to_s).beginning_of_week
+     eow = DateTime.parse(Date.commercial(2020,w).to_s).end_of_week
      p bow.iso8601, eow.iso8601
      teams = db.execute("SELECT * FROM teams")
      data = ""
@@ -464,8 +464,8 @@ end
 [*CHAMP.begin.to_date.cweek..(Date.today.cweek)].reverse_each do |w|
      puts "statistics#{w}...."
      p w
-     bow = DateTime.parse(Date.commercial(2019,w).to_s).beginning_of_week
-     eow = DateTime.parse(Date.commercial(2019,w).to_s).end_of_week
+     bow = DateTime.parse(Date.commercial(2020,w).to_s).beginning_of_week
+     eow = DateTime.parse(Date.commercial(2020,w).to_s).end_of_week
      p bow.iso8601, eow.iso8601
      data = ""
      data +=   "<center>\n"
