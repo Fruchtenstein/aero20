@@ -2,6 +2,7 @@
 require 'sqlite3'
 require 'active_support'
 require 'active_support/core_ext'
+require 'pp'
 require_relative './config.rb'
 
 def calcweek (now)
@@ -36,18 +37,22 @@ def calcwlog(d)
     eow = d.end_of_week.iso8601
     teamdist = Hash.new(0)
     teamtime = Hash.new(0)
+    teamgoal = Hash.new(0)
     db = SQLite3::Database.new(DB)
-    db.execute("SELECT runnerid from runners") do |r|
-      res = db.execute("SELECT COALESCE(SUM(distance),0), COALESCE(SUM(time),0), teamid FROM log, runners WHERE log.runnerid=runners.runnerid AND log.runnerid=#{r[0]} AND date>'#{bow}' AND date<'#{eow}'")[0]
+    db.execute("SELECT runnerid, teamid, 7*goal/365 from runners") do |r|
+      res = db.execute("SELECT COALESCE(SUM(distance),0), COALESCE(SUM(time),0) FROM log, runners WHERE log.runnerid=runners.runnerid AND log.runnerid=#{r[0]} AND date>'#{bow}' AND date<'#{eow}'")[0]
+      pp "r=",r
+      pp "res=", res
       db.execute("INSERT OR REPLACE INTO wlog VALUES (#{r[0]}, #{week_number}, #{res[0]}, #{res[1]})")
-      teamdist[res[2]] += res[0]
-      teamtime[res[2]] += res[1]
+      teamdist[r[1]] += res[0]
+      teamtime[r[1]] += res[1]
+      teamgoal[r[1]] += r[2]
     end
-    p teamdist,teamtime
+    p teamdist,teamtime,teamgoal
     teamdist.each do |team, distance|
       if team
-        p("INSERT OR REPLACE INTO teamwlog VALUES (#{team}, #{week_number}, #{distance}, #{teamtime[team]})")
-        db.execute("INSERT OR REPLACE INTO teamwlog VALUES (#{team}, #{week_number}, #{distance}, #{teamtime[team]})")
+        p("INSERT OR REPLACE INTO teamwlog VALUES (#{team}, #{week_number}, #{distance}, #{teamtime[team]}, #{teamgoal[team]})")
+        db.execute("INSERT OR REPLACE INTO teamwlog VALUES (#{team}, #{week_number}, #{distance}, #{teamtime[team]}, #{teamgoal[team]})")
       end
     end
 end
@@ -83,6 +88,19 @@ def calcwonders(d)
     db.execute("INSERT OR REPLACE INTO wonders VALUES (#{week_number}, 'ffr', #{w[0]}, #{w[1]}, #{w[2]})")
 end
 
+def calcpoints (d)
+    week_number = d.to_date.cweek.to_i
+    bow = d.beginning_of_week.iso8601
+    eow = d.end_of_week.iso8601
+    db = SQLite3::Database.new(DB)
+    place = 0
+    db.execute("SELECT teamid, 100*distance/goal, distance, goal FROM teamwlog WHERE week=#{week_number} ORDER BY distance/goal") do |t|
+        points = place * 5
+        place += 1
+        p ("INSERT OR REPLACE INTO points VALUES (#{t[0]}, #{week_number}, #{points}, #{t[1]}, #{t[2]}, #{t[3]})")
+        db.execute("INSERT OR REPLACE INTO points VALUES (#{t[0]}, #{week_number}, #{points}, #{t[1]}, #{t[2]}, #{t[3]})")
+    end
+end
 #def calcprolog ()
 #    db = SQLite3::Database.new(DB)
 #    teams = Array.new(TEAMS, 0)
