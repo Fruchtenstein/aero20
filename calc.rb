@@ -95,7 +95,8 @@ def calcpoints (d)
     db = SQLite3::Database.new(DB)
     place = 0
     db.execute("SELECT teamid, 100*distance/goal, distance, goal FROM teamwlog WHERE week=#{week_number} ORDER BY distance/goal") do |t|
-        points = place * 5
+        wonders = db.execute("SELECT count(*) FROM wonders WHERE teamid=#{t[0]} AND week=#{week_number}")[0][0]
+        points = place * 5 + wonders * 2
         place += 1
         p ("INSERT OR REPLACE INTO points VALUES (#{t[0]}, #{week_number}, #{points}, #{t[1]}, #{t[2]}, #{t[3]})")
         db.execute("INSERT OR REPLACE INTO points VALUES (#{t[0]}, #{week_number}, #{points}, #{t[1]}, #{t[2]}, #{t[3]})")
@@ -129,10 +130,10 @@ end
 if now >= PROLOG.begin and now <= (PROLOG.end + 2.days)
   if now.wday.between?(1, DOW-1) and 1.week.ago.getutc.beginning_of_week >= PROLOG.begin
     calcwlog(1.week.ago)
-    calcwonders(1.week.ago)
+#    calcwonders(1.week.ago)
   end
   calcwlog(now)
-  calcwonders(now)
+#  calcwonders(now)
 end
 
 if now >= CHAMP.begin and now <= (CHAMP.end + 2.days)
