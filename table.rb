@@ -437,9 +437,9 @@ File.open("html/users4.html", 'w') { |f| f.write(users4_erb.result(binding)) }
              sum_pct += pct
              sum_goal += goal
              if odd
-                 data += "  <tr><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{goal.round(2)}</td><td><a href=\"https://strava.com/athletes/#{r[5]}#interval?interval=#{CHAMP.begin.year.to_s+w.to_s.rjust(2,"0")}&interval_type=week&chart_type=miles&year_offset=0\">#{dist.round(2)}</a></td><td>#{pct.round(2)}</td></tr>\n"
+                 data += "  <tr><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{goal.round(2)}</td><td><a href=\"https://strava.com/athletes/#{r[0]}#interval?interval=#{CHAMP.begin.year.to_s+w.to_s.rjust(2,"0")}&interval_type=week&chart_type=miles&year_offset=0\">#{dist.round(2)}</a></td><td>#{pct.round(2)}</td></tr>\n"
              else
-                 data += "  <tr class=\"alt\"><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{goal.round(2)}</td><td><a href=\"http://strava.com/athletes/#{r[5]}#interval?interval=#{CHAMP.begin.year.to_s+w.to_s.rjust(2,"0")}&interval_type=week&chart_type=miles&year_offset=0\">#{dist.round(2)}</a></td><td>#{pct.round(2)}</td></tr>\n"
+                 data += "  <tr class=\"alt\"><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{goal.round(2)}</td><td><a href=\"http://strava.com/athletes/#{r[0]}#interval?interval=#{CHAMP.begin.year.to_s+w.to_s.rjust(2,"0")}&interval_type=week&chart_type=miles&year_offset=0\">#{dist.round(2)}</a></td><td>#{pct.round(2)}</td></tr>\n"
              end
              odd = !odd
          end
