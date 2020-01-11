@@ -227,7 +227,7 @@ runners.each do |r|
             plot.output File.expand_path("../html/u#{r[0]}.png", __FILE__)
             plot.title "Километраж по неделям"
 	    plot.key "bmargin"
-            weeks = [*1..(Date.today.cweek-1)]
+            weeks = [*1..(Date.today.cweek)]
             plot.xrange "[1:#{weeks[-1]}]"
             plot.xlabel 'Недели'
             plot.ylabel 'Км'
@@ -263,7 +263,7 @@ runners.each do |r|
             plot.output File.expand_path("../html/w#{r[0]}.png", __FILE__)
             plot.title "Выполнение нормы"
 	    plot.key "bmargin"
-            weeks = [*1..(Date.today.cweek-1)]
+            weeks = [*1..(Date.today.cweek)]
             plot.xrange "[1:#{weeks[-1]}]"
             plot.xlabel 'Недели'
             plot.ylabel 'Км'
