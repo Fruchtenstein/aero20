@@ -443,7 +443,7 @@ File.open("html/users4.html", 'w') { |f| f.write(users4_erb.result(binding)) }
              end
              odd = !odd
          end
-         data +=  "<tfoot><tr><td>Всего:</td><td>#{sum_goal.round(2)}</td><td>#{sum_dist.round(2)}</td><td>#{(sum_dist/sum_goal).round(2)}</td></tr></tfoot>\n"
+         data +=  "<tfoot><tr><td>Всего:</td><td>#{sum_goal.round(2)}</td><td>#{sum_dist.round(2)}</td><td>#{(100*sum_dist/sum_goal).round(2)}</td></tr></tfoot>\n"
          data +=   "   </tbody>\n"
          data +=   "</table>\n"
          data +=   "</div>\n"
