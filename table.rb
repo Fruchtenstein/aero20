@@ -365,7 +365,7 @@ File.open("html/users2.html", 'w') { |f| f.write(users2_erb.result(binding)) }
 ### Process users3.html
 data = ""
 data += "<center>\n"
-data += "<h1>По процентам</h1>\n"
+data += "<h1>По результатам 2019 года</h1>\n"
 data += "</center>\n"
 data += "<div class=\"datagrid\">\n"
 data += "<table>\n"
