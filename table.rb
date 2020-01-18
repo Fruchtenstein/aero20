@@ -45,6 +45,7 @@ end
 
 $stdout.sync = true
 now = Time.now.getutc
+dayno = now.yday
 if now < PROLOG.begin or now > (CHAMP.end + 2.days)
     puts "#{now}: Not yet time..."
     exit
@@ -305,14 +306,19 @@ data += "<thead><tr><th></th><th>Имя</th><th>Объемы 2020 (км)</th><th
 odd = true
 i = 0
 db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) FROM runners r JOIN teams USING (teamid) ORDER BY d DESC") do |r|
-  p r
   note = db.execute("SELECT title FROM titles WHERE runnerid=#{r[0]}").join("<br />")
   if odd
-#    data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
-    data += "<tr><td>#{i+=1}</td><td><a href=\"https://www.strava.com/athletes/#{r[0]}\">#{r[1]}</a></td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    if r[3]>dayno*r[4]/365
+      data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\"><b>#{r[1]}</b></a></td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    else
+      data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    end
   else
-#    data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
-    data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"https://www.strava.com/athletes/#{r[0]}\">#{r[1]}</a></td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    if r[3]>dayno*r[4]/365
+      data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\"><b>#{r[1]}</b></a></td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    else
+      data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    end
   end
   odd = !odd
 end
@@ -336,9 +342,17 @@ i = 0
 db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) p FROM runners r JOIN teams USING (teamid) ORDER BY p DESC") do |r|
   note = db.execute("SELECT title FROM titles WHERE runnerid=#{r[0]}").join("<br />")
   if odd
-    data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[5].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    if r[3]>dayno*r[4]/365
+      data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\"><b>#{r[1]}</b></a></td><td>#{r[5].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    else
+      data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[5].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    end
   else
-    data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[5].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    if r[3]>dayno*r[4]/365
+      data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\"><b>#{r[1]}</b></a></td><td>#{r[5].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    else
+      data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[5].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[4].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    end
   end
   odd = !odd
 end
@@ -362,9 +376,17 @@ i = 0
 db.execute("SELECT runnerid, runnername, teamname, (SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid) d, (SELECT goal FROM runners WHERE runnerid=r.runnerid) g, 100*(SELECT COALESCE(SUM(distance),0) FROM log WHERE runnerid=r.runnerid)/(SELECT goal FROM runners WHERE runnerid=r.runnerid) p FROM runners r JOIN teams USING (teamid) ORDER BY g DESC") do |r|
   note = db.execute("SELECT title FROM titles WHERE runnerid=#{r[0]}").join("<br />")
   if odd
-    data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[4].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    if r[3]>dayno*r[4]/365
+      data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\"><b>#{r[1]}</b></a></td><td>#{r[4].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    else
+      data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[4].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    end
   else
-    data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[4].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    if r[3]>dayno*r[4]/365
+      data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\"><b>#{r[1]}</b></a></td><td>#{r[4].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    else
+      data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[4].round(2)}</td><td>#{r[3].round(2)}</td><td>#{r[5].round(2)}</td><td>#{r[2]}</td></tr>\n"
+    end
   end
   odd = !odd
 end
