@@ -93,13 +93,13 @@ def calcwonders(d)
     p("INSERT OR REPLACE INTO wonders VALUES (#{week_number}, 'flr', #{w[0]}, #{w[1]}, '<a href=\"http://strava.com/activities/#{w[3]}\">#{w[2].round(2)} км</a>')")
     db.execute("INSERT OR REPLACE INTO wonders VALUES (#{week_number}, 'flr', #{w[0]}, #{w[1]}, '<a href=\"http://strava.com/activities/#{w[3]}\">#{w[2].round(2)} км</a>')")
     # best boy in run speed
-    p("SELECT log.runnerid, teamid, MIN(time/distance),runid FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow}' AND date<'#{eow}' AND sex=1 AND time>0")
-    w = db.execute("SELECT log.runnerid, teamid, MIN(time/distance),runid FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow}' AND date<'#{eow}' AND sex=1 AND time>0")[0]
+    p("SELECT log.runnerid, teamid, MIN(time/distance),runid FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow}' AND date<'#{eow}' AND sex=1 AND time>0 AND distance>3.0")
+    w = db.execute("SELECT log.runnerid, teamid, MIN(time/distance),runid FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow}' AND date<'#{eow}' AND sex=1 AND time>0 AND distance>3.0")[0]
     p("INSERT OR REPLACE INTO wonders VALUES (#{week_number}, 'mfr', #{w[0]}, #{w[1]}, '<a href=\"http://strava.com/activities/#{w[3]}\">'||strftime('%M:%S',#{w[2]},'unixepoch')||' мин/км</a>')")
     db.execute("INSERT OR REPLACE INTO wonders VALUES (#{week_number}, 'mfr', #{w[0]}, #{w[1]}, '<a href=\"http://strava.com/activities/#{w[3]}\">'||strftime('%M:%S',#{w[2]},'unixepoch')||' мин/км</a>')")
     # best girl in run speed
-    p("SELECT log.runnerid, teamid, MIN(time/distance),runid FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow}' AND date<'#{eow}' AND sex=0 AND time>0")
-    w = db.execute("SELECT log.runnerid, teamid, MIN(time/distance),runid FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow}' AND date<'#{eow}' AND sex=0 AND time>0")[0]
+    p("SELECT log.runnerid, teamid, MIN(time/distance),runid FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow}' AND date<'#{eow}' AND sex=0 AND time>0 AND distance>3.0")
+    w = db.execute("SELECT log.runnerid, teamid, MIN(time/distance),runid FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow}' AND date<'#{eow}' AND sex=0 AND time>0 AND distance>3.0")[0]
     p("INSERT OR REPLACE INTO wonders VALUES (#{week_number}, 'ffr', #{w[0]}, #{w[1]}, '<a href=\"http://strava.com/activities/#{w[3]}\">'||strftime('%M:%S',#{w[2]},'unixepoch')||' мин/км</a>')")
     db.execute("INSERT OR REPLACE INTO wonders VALUES (#{week_number}, 'ffr', #{w[0]}, #{w[1]}, '<a href=\"http://strava.com/activities/#{w[3]}\">'||strftime('%M:%S',#{w[2]},'unixepoch')||' мин/км</a>')")
 end
