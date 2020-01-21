@@ -413,10 +413,19 @@ db.execute("SELECT * FROM teams ORDER BY teamid") do |t|
     i = 0
     db.execute("SELECT * FROM runners WHERE teamid=#{t[0]} ORDER BY goal DESC") do |r|
         note = db.execute("SELECT title FROM titles WHERE runnerid=#{r[0]}").join("<br />")
+        dist = db.execute("SELECT SUM(distance) FROM wlog WHERE runnerid=#{r[0]}")[0][0]
         if odd
+          if dist>dayno*r[5]/365
+            data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\"><b>#{r[1]}</b></a></td><td>#{r[5].round(2)}</td><td>#{note}</td></tr>\n"
+          else
             data += "<tr><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[5].round(2)}</td><td>#{note}</td></tr>\n"
+          end
         else
+          if dist>dayno*r[5]/365
+            data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\"><b>#{r[1]}</b></a></td><td>#{r[5].round(2)}</td><td>#{note}</td></tr>\n"
+          else
             data += "<tr class=\"alt\"><td>#{i+=1}</td><td><a href=\"u#{r[0]}.html\">#{r[1]}</a></td><td>#{r[5].round(2)}</td><td>#{note}</td></tr>\n"
+          end
         end
         odd = !odd
     end
