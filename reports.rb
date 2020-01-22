@@ -30,9 +30,9 @@ puts r
 r = `litecli 2020.db -te "select  runnername, strftime('%M:%S',t/d,'unixepoch') pace, teamname FROM (SELECT runnerid, SUM(time) t, SUM(distance) d FROM log WHERE date>'#{bow}' AND date<'#{eow}' AND time>0 GROUP BY runnerid) l, runners, teams WHERE runners.runnerid=l.runnerid AND sex=0 AND teams.teamid=runners.teamid ORDER BY pace LIMIT 5"`
 puts r
 puts "самая быстрая пробежка"
-r = `litecli 2020.db -te "select  runnername,date,round(distance,2) dist,strftime('%H:%M:%S',time,'unixepoch') duration,strftime('%M:%S',time/distance,'unixepoch') pace, 'https://strava.com/activities/'||runid from log,runners where date>'#{bow}' and date<'#{eow}' and log.runnerid=runners.runnerid order by pace limit 5"`
+r = `litecli 2020.db -te "select  runnername,date,round(distance,2) dist,strftime('%H:%M:%S',time,'unixepoch') duration,strftime('%M:%S',time/distance,'unixepoch') pace, 'https://strava.com/activities/'||runid from log,runners where date>'#{bow}' and date<'#{eow}' and log.runnerid=runners.runnerid AND distance>0 AND time>0 order by pace limit 5"`
 puts r
-r = `litecli 2020.db -te "select  runnername,date,round(distance,2) dist,strftime('%H:%M:%S',time,'unixepoch') duration,strftime('%M:%S',time/distance,'unixepoch') pace,'https://strava.com/activities/'||runid from log,runners where date>'#{bow}' and date<'#{eow}' and log.runnerid=runners.runnerid and sex=0 order by pace limit 5"`
+r = `litecli 2020.db -te "select  runnername,date,round(distance,2) dist,strftime('%H:%M:%S',time,'unixepoch') duration,strftime('%M:%S',time/distance,'unixepoch') pace,'https://strava.com/activities/'||runid from log,runners where date>'#{bow}' and date<'#{eow}' and log.runnerid=runners.runnerid and sex=0 AND distance>0 AND time>0 order by pace limit 5"`
 puts r
 puts "больше всего процентов"
 r = `litecli 2020.db -te "select  runnername, d, teamname from (select runnerid, 100*sum(distance)/(select 7*goal/365 from runners where runnerid=log.runnerid) d from log where date>'#{bow}' and date<'#{eow}' group by runnerid) l, runners, teams where runners.runnerid=l.runnerid and teams.teamid=runners.teamid order by d DESC limit 5"`
@@ -49,3 +49,6 @@ puts r
 #puts r
 #r = `litecli 2020.db -te "select  runnername, strftime('%M:%S',t/d,'unixepoch') pace, teamname FROM (SELECT runnerid, SUM(time) t, SUM(distance) d FROM log WHERE date>'#{bow}' AND date<'#{eow}' AND time>0 GROUP BY runnerid) l, runners, teams WHERE runners.runnerid=l.runnerid AND sex=0 AND teams.teamid=runners.teamid ORDER BY pace DESC LIMIT 5"`
 #puts r
+puts "Комьюты"
+r = `litecli 2020.db -te "select runnername, date, round(distance,2) dist,strftime('%H:%M:%S',time,'unixepoch') duration,strftime('%M:%S',time/distance,'unixepoch') pace, 'https://strava.com/activities/'||runid from log,runners where date>'#{bow}' and date<'#{eow}' and log.runnerid=runners.runnerid and commute=1"`
+puts r
