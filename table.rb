@@ -534,28 +534,6 @@ end
      x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='flw'")[0]
      data +=   "    <tr class='alt'><td>Больше всех километров среди женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]}</td></tr>\n"
 
-     x = db.execute("SELECT l.runnerid, runnername, MAX(d), teamname FROM \
-                        (SELECT runnerid, 100*SUM(distance)/(SELECT 7*goal/365 FROM runners WHERE runnerid=log.runnerid) d \
-                                FROM log WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' GROUP BY runnerid) l, runners, teams \
-                                    WHERE runners.runnerid=l.runnerid AND sex=1 AND teams.teamid=runners.teamid")[0]
-     p x
-     x[0] = x[0] || 0
-     x[1] = x[1] || ''
-     x[2] = x[2] || 0
-     x[3] = x[3] || ''
-     data +=   "    <tr><td>Больше всех процентов среди мужчин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2].round(2)}%</td></tr>\n"
-
-     x = db.execute("SELECT l.runnerid, runnername, MAX(d), teamname FROM \
-                        (SELECT runnerid, 100*SUM(distance)/(SELECT 7*goal/365 FROM runners WHERE runnerid=log.runnerid) d \
-                                FROM log WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' GROUP BY runnerid) l, runners, teams \
-                                    WHERE runners.runnerid=l.runnerid AND sex=0 AND teams.teamid=runners.teamid")[0]
-     p x
-     x[0] = x[0] || 0
-     x[1] = x[1] || ''
-     x[2] = x[2] || 0
-     x[3] = x[3] || ''
-     data +=   "    <tr class='alt'><td>Больше всех процентов среди женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2].round(2)}%</td></tr>\n"
-
 #     x = db.execute("SELECT log.runnerid, runnername, MAX(distance), runid, teamname FROM log, runners, teams WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' AND runners.runnerid=log.runnerid AND sex=1 AND teams.teamid=runners.teamid")[0]
 #     p x
 #     x[0] = x[0] || 0
@@ -669,6 +647,28 @@ end
 #     x[2] = x[2] || 0
 #     x[3] = x[3] || ''
 #     data +=   "    <tr class='alt'><td>Самый медленный средний темп у женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]} мин/км</td></tr>\n"
+     x = db.execute("SELECT l.runnerid, runnername, MAX(d), teamname FROM \
+                        (SELECT runnerid, 100*SUM(distance)/(SELECT 7*goal/365 FROM runners WHERE runnerid=log.runnerid) d \
+                                FROM log WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' GROUP BY runnerid) l, runners, teams \
+                                    WHERE runners.runnerid=l.runnerid AND sex=1 AND teams.teamid=runners.teamid")[0]
+     p x
+     x[0] = x[0] || 0
+     x[1] = x[1] || ''
+     x[2] = x[2] || 0
+     x[3] = x[3] || ''
+     data +=   "    <tr><td>Больше всех процентов среди мужчин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2].round(2)}%</td></tr>\n"
+
+     x = db.execute("SELECT l.runnerid, runnername, MAX(d), teamname FROM \
+                        (SELECT runnerid, 100*SUM(distance)/(SELECT 7*goal/365 FROM runners WHERE runnerid=log.runnerid) d \
+                                FROM log WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' GROUP BY runnerid) l, runners, teams \
+                                    WHERE runners.runnerid=l.runnerid AND sex=0 AND teams.teamid=runners.teamid")[0]
+     p x
+     x[0] = x[0] || 0
+     x[1] = x[1] || ''
+     x[2] = x[2] || 0
+     x[3] = x[3] || ''
+     data +=   "    <tr class='alt'><td>Больше всех процентов среди женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2].round(2)}%</td></tr>\n"
+
 
      data +=   "   </tbody>\n"
      data +=   "</table>\n"
