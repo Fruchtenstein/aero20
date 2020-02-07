@@ -39,7 +39,7 @@ def calcwlog(d)
     teamtime = Hash.new(0)
     teamgoal = Hash.new(0)
     db = SQLite3::Database.new(DB)
-    db.execute("SELECT runnerid, teamid, 7*goal/365 from runners") do |r|
+    db.execute("SELECT runnerid, teamid, 7*goal/365 from runners where teamid>0") do |r|
       res = db.execute("SELECT COALESCE(SUM(distance),0), COALESCE(SUM(time),0) FROM log, runners WHERE log.runnerid=runners.runnerid AND log.runnerid=#{r[0]} AND date>'#{bow}' AND date<'#{eow}'")[0]
       pp "r=",r
       pp "res=", res
