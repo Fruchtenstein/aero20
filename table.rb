@@ -519,7 +519,7 @@ end
 #     x[1] = x[1] || ''
 #     x[2] = x[2] || 0
 #     x[3] = x[3] || ''
-     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='mlw'")[0]
+     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='mlw'")[0] || [0,'',0,'']
      data +=   "    <tr><td>Больше всех километров среди мужчин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]}</td></tr>\n"
 
 #     x = db.execute("SELECT l.runnerid, runnername, MAX(d), teamname FROM \
@@ -531,7 +531,7 @@ end
 #     x[1] = x[1] || ''
 #     x[2] = x[2] || 0
 #     x[3] = x[3] || ''
-     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='flw'")[0]
+     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='flw'")[0] || [0,'',0,'']
      data +=   "    <tr class='alt'><td>Больше всех километров среди женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]}</td></tr>\n"
 
 #     x = db.execute("SELECT log.runnerid, runnername, MAX(distance), runid, teamname FROM log, runners, teams WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' AND runners.runnerid=log.runnerid AND sex=1 AND teams.teamid=runners.teamid")[0]
@@ -541,7 +541,7 @@ end
 #     x[2] = x[2] || 0
 #     x[3] = x[3] || 0
 #     x[4] = x[4] || ''
-     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='mlr'")[0]
+     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='mlr'")[0] || [0,'',0,'']
      data +=   "    <tr><td>Самая длинная тренировка у мужчин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]}</td></tr>\n"
 
 #     x = db.execute("SELECT log.runnerid, runnername, MAX(distance), runid, teamname FROM log, runners, teams WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' AND runners.runnerid=log.runnerid AND sex=0 AND teams.teamid=runners.teamid")[0]
@@ -551,7 +551,7 @@ end
 #     x[2] = x[2] || 0
 #     x[3] = x[3] || 0
 #     x[4] = x[4] || ''
-     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='flr'")[0]
+     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='flr'")[0] || [0,'',0,'']
      data +=   "    <tr class='alt'><td>Самая длинная тренировка у женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]}</td></tr>\n"
 
 #     x = db.execute("SELECT log.runnerid, runnername, strftime('%H:%M:%S',MAX(time),'unixepoch'), runid, teamname FROM log, runners, teams WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' AND runners.runnerid=log.runnerid AND teams.teamid=runners.teamid")[0]
@@ -580,7 +580,7 @@ end
 #     x[3] = x[3] || 0
 #     x[4] = x[4] || 0
 #     x[5] = x[5] || ''
-     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='mfr'")[0]
+     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='mfr'")[0] || [0,'',0,'']
      data +=   "    <tr><td>Самая быстрая тренировка у мужчин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]}</td></tr>\n"
 
 #     x = db.execute("SELECT log.runnerid, runnername, strftime('%M:%S',MIN(time/distance),'unixepoch'), runid, distance, teamname FROM log, runners, teams WHERE log.runnerid=runners.runnerid AND date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' AND sex=0 AND teams.teamid=runners.teamid AND time>0")[0]
@@ -591,7 +591,7 @@ end
 #     x[3] = x[3] || 0
 #     x[4] = x[4] || 0
 #     x[5] = x[5] || ''
-     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='ffr'")[0]
+     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='ffr'")[0] || [0,'',0,'']
      data +=   "    <tr class='alt'><td>Самая быстрая тренировка у женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]}</td></tr>\n"
 
 #     x = db.execute("SELECT l.runnerid, runnername, strftime('%M:%S',MIN(t/d),'unixepoch'), teamname FROM (SELECT runnerid, SUM(time) t, SUM(distance) d FROM log WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' AND time>0 GROUP BY runnerid) l, runners, teams WHERE runners.runnerid=l.runnerid AND sex=1 AND teams.teamid=runners.teamid")[0]
@@ -600,7 +600,7 @@ end
 #     x[1] = x[1] || ''
 #     x[2] = x[2] || 0
 #     x[3] = x[3] || ''
-     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='mfw'")[0]
+     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='mfw'")[0] || [0,'',0,'']
      data +=   "    <tr><td>Самый быстрый средний темп у мужчин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]}</td></tr>\n"
 
 #     x = db.execute("SELECT l.runnerid, runnername, strftime('%M:%S',MIN(t/d),'unixepoch'), teamname FROM (SELECT runnerid, SUM(time) t, SUM(distance) d FROM log WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' AND time>0 GROUP BY runnerid) l, runners, teams WHERE runners.runnerid=l.runnerid AND sex=0 AND teams.teamid=runners.teamid")[0]
@@ -609,7 +609,7 @@ end
 #     x[1] = x[1] || ''
 #     x[2] = x[2] || 0
 #     x[3] = x[3] || ''
-     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='ffw'")[0]
+     x = db.execute("SELECT wonders.runnerid, runnername, wonder, teamname FROM wonders, runners, teams WHERE wonders.runnerid=runners.runnerid AND wonders.teamid=teams.teamid AND week=#{w} AND type='ffw'")[0] || [0,'',0,'']
      data +=   "    <tr class='alt'><td>Самый быстрый средний темп у женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2]}</td></tr>\n"
 
 #     x = db.execute("SELECT log.runnerid, runnername, strftime('%M:%S',MAX(time/distance),'unixepoch'), runid, distance, teamname FROM log, runners, teams WHERE log.runnerid=runners.runnerid AND date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' AND teams.teamid=runners.teamid AND time>0")[0]
@@ -650,7 +650,7 @@ end
      x = db.execute("SELECT l.runnerid, runnername, MAX(d), teamname FROM \
                         (SELECT runnerid, 100*SUM(distance)/(SELECT 7*goal/365 FROM runners WHERE runnerid=log.runnerid) d \
                                 FROM log WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' GROUP BY runnerid) l, runners, teams \
-                                    WHERE runners.runnerid=l.runnerid AND sex=1 AND teams.teamid=runners.teamid")[0]
+                                    WHERE runners.runnerid=l.runnerid AND sex=1 AND teams.teamid=runners.teamid")[0] || [0,'',0,'']
      p x
      x[0] = x[0] || 0
      x[1] = x[1] || ''
@@ -661,7 +661,7 @@ end
      x = db.execute("SELECT l.runnerid, runnername, MAX(d), teamname FROM \
                         (SELECT runnerid, 100*SUM(distance)/(SELECT 7*goal/365 FROM runners WHERE runnerid=log.runnerid) d \
                                 FROM log WHERE date>'#{bow.iso8601}' AND date<'#{eow.iso8601}' GROUP BY runnerid) l, runners, teams \
-                                    WHERE runners.runnerid=l.runnerid AND sex=0 AND teams.teamid=runners.teamid")[0]
+                                    WHERE runners.runnerid=l.runnerid AND sex=0 AND teams.teamid=runners.teamid")[0] || [0,'',0,'']
      p x
      x[0] = x[0] || 0
      x[1] = x[1] || ''
