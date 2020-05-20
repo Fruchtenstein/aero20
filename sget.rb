@@ -63,7 +63,7 @@ db.execute("SELECT runnerid, runnerid, reftoken, runnername, teamid, goal FROM r
                 workout_type=0
             end
             commute = run['commute'] ? 1 : 0
-            if type == 'Run'
+            if type == 'Run' or type == 'VirtualRun'
                 p "INSERT OR REPLACE INTO log VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{time.to_i}, '#{type}', #{workout_type}, #{commute})"
                 db.execute("INSERT OR REPLACE INTO log VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{time.to_i}, '#{type}', #{workout_type}, #{commute})")
             end
