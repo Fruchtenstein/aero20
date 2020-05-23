@@ -59,6 +59,7 @@ cup = ""
 
 
 index_erb = ERB.new(File.read('index.html.erb'))
+feed_erb = ERB.new(File.read('feed.html.erb'))
 rules_erb = ERB.new(File.read('rules.html.erb'))
 teams_erb = ERB.new(File.read('teams.html.erb'))
 user_erb = ERB.new(File.read('u.html.erb'))
@@ -82,13 +83,13 @@ if now > PROLOG.begin #and now < 7.days.after(CLOSEPROLOG)
     
     teams = db.execute("SELECT * FROM teams")
     
-    odd = true
     runners = db.execute("SELECT runnerid,runnername,7*goal/365,teamid FROM runners")
     runners.each do |r|
         r << db.execute("SELECT COALESCE(SUM(distance),0) AS dist FROM log WHERE runnerid=#{r[0]} AND date>'#{PROLOG.begin.iso8601}' AND date<'#{PROLOG.end.iso8601}'")[0][0]
     end
     runners.sort! { |x,y| y[4] <=> x[4] }
     p runners
+    odd = true
     runners.each do |r|
 #        if now > CLOSEPROLOG
 #            points = case runners.index(r)
@@ -687,6 +688,47 @@ end
      box += "      </ul>\n"
      box += "    </nav>\n"
      File.open("html/statistics#{w}.html", 'w') { |f| f.write(statistics_erb.result(binding)) }
+end
+
+### Process feed*.html
+[*CHAMP.begin.to_date.cweek..(Date.today.cweek)].reverse_each do |w|
+     puts "feed#{w}...."
+     p w
+     bow = DateTime.parse(Date.commercial(2020,w).to_s).beginning_of_week
+     eow = DateTime.parse(Date.commercial(2020,w).to_s).end_of_week
+     p bow.iso8601, eow.iso8601
+     data = ""
+     data +=   "<center>\n"
+     data +=   "    <br />\n"
+     data +=   "    <br />\n"
+     data +=   "    <h1>Тренировки недели</h1>\n"
+     data +=   "</center>\n"
+     data +=   "<div class=\"datagrid\"><table>\n"
+     data +=   "   <thead><tr><th>Дата</th><th>Имя</th><th>Дистанция (км)</th><th>Время</th><th>Темп</th></tr></thead>\n"
+     data +=   "    <tbody>\n"
+     db.execute("SELECT date, runnername, distance, time, strftime('%M:%S',time/distance,'unixepoch') FROM \
+                       log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow.iso8601}' \
+                       AND date<'#{eow.iso8601}' ORDER BY date DESC") do |t|
+       data += "     <tr><td>#{t[0]}</td><td>#{t[1]}</td><td>#{t[2]}</td><td>#{t[3]}</td><td>#{t[4]}</td>\n"
+     end
+
+     data +=   "   </tbody>\n"
+     data +=   "</table>\n"
+     data +=   "</div>\n"
+     data +=   "<br />\n"
+
+     box  = "<nav class=\"sub\">\n"
+     box += "      <ul>\n"
+     (CHAMP.begin.to_date.cweek..Date.today.cweek).each do |wk|
+         if wk == w
+             box += "        <li class=\"active\"><span>#{wk} неделя</span></li>\n"
+         else
+             box += "        <li><a href=\"feed#{wk}.html\">#{wk} неделя</a></li>\n"
+         end
+     end
+     box += "      </ul>\n"
+     box += "    </nav>\n"
+     File.open("html/feed#{w}.html", 'w') { |f| f.write(feed_erb.result(binding)) }
 end
 
 (CHAMP.begin.to_date.cweek..Date.today.cweek).each do |w|

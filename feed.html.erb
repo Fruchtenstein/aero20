@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <title>Соревнования на Кубок Аэробии | Статистика</title>
+  <title>Соревнования на Кубок Аэробии | Тренировки</title>
   <meta content="http://aerobia.ru/assets/aerobia-2ebacfbc9d1c2bc03bfab224ec470e42.gif" property="og:image" />
   <link href="assets/application-1fd0a358e6b9e12ee7c6518fefc54274.css" media="screen" rel="stylesheet" type="text/css" />
 <style type="text/css">
@@ -27,10 +27,10 @@
         <nav>
             <ul>
                 <li class="workouts"><a href="index.html"><span></span>Таблица</a></li>
-                <li class="inventory"><a href="feed<%=week%>.html"><span></span>Тренировки</a></li>
-                <li class="friends"><a href="teams<%=week%>.html"><span></span>Команды</a></li>
-                <li class="users active"><a href="users.html"><span></span>Участники</a></li>
-                <li class="statistics"><a href="statistics<%=week%>.html"><span></span>Статистика</a></li>
+                <li class="inventory active"><a href="feed<%=w%>.html"><span></span>Тренировки</a></li>
+                <li class="friends"><a href="teams<%=w%>.html"><span></span>Команды</a></li>
+                <li class="users"><a href="users.html"><span></span>Участники</a></li>
+                <li class="statistics"><a href="statistics<%=w%>.html"><span></span>Статистика</a></li>
                 <li class="bests"><a href="rules.html"><span></span>Правила</a></li>
             </ul>
         </nav>
@@ -46,17 +46,8 @@
       <tr>
         <td class="aside">
           <!-- nav class="sub"><ul><li class="active"><span>Моя лента</span></li> <li><a href="http://aerobia.ru/favorites">Избранное</a></li></ul> <ul><li><a href="http://aerobia.ru/posts/best">Лучшее</a></li> <li><a href="http://aerobia.ru/posts">Общая лента</a></li></ul></nav -->
-          <nav class="sub">
-              <ul>
-                  <% runners.each do |runner|
-                      if runner[0] == r[0] %>
-                        <li class="active"><a href="u<%= runner[0] %>.html"><%= runner[1] %></a></li>
-                    <% else %>
-                        <li><a href="u<%= runner[0] %>.html"><%= runner[1] %></a></li>
-                    <% end %>
-                <%  end %>
-              </ul>
-          </nav>
+
+          <%= box %>
 
           <aside class="clubs separate">
           </aside>
@@ -65,14 +56,9 @@
         </td>
         <td>
             <br />
-            <!--center><img src="cup.png"></img></center-->
-            <br />
             <%=data%>
-            <br />
-            <center><img src="u<%=r[0]%>.png"></img></center>
 
-            <br />
-            <center><img src="w<%=r[0]%>.png"></img></center>
+
 
         </td>
       </tr>
