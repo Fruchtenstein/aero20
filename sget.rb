@@ -56,17 +56,40 @@ db.execute("SELECT runnerid, runnerid, reftoken, runnername, teamid, goal FROM r
     resp = conn.get(url, d, h)
     if resp.status == 200 then
         j = JSON.parse(resp.content)
-        p j
         j.each do |run|
-            id, type, distance, start_date, time, workout_type= run['id'], run['type'], run['distance'], run['start_date'], run['moving_time'], run['workout_type']
-            if workout_type.nil?
-                workout_type=0
-            end
-            commute = run['commute'] ? 1 : 0
-            if type == 'Run' or type == 'VirtualRun'
-                p "INSERT OR REPLACE INTO log VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{time.to_i}, '#{type}', #{workout_type}, #{commute})"
-                db.execute("INSERT OR REPLACE INTO log VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{time.to_i}, '#{type}', #{workout_type}, #{commute})")
-            end
+          p run
+          id = run['id']
+          type = run['type']
+          distance = run['distance']
+          start_date = run['start_date']
+          moving_time = run['moving_time']
+          workout_type = run['workout_type'] || 0
+          start_date_local = run['start_date_local'] || ''
+          timezone = run['timezone'] || ''
+          utc_offset = run['utc_offset'] || 0
+          name = run['name'] || ''
+          elapsed_time = run['elapsed_time'] || ''
+          total_elevation_gain = run['total_elevation_gain'] || 0.0
+          start_latitude = run['start_latitude'] || 0.0
+          start_longitude = run['start_longitude'] || 0.0
+          end_lat = run['end_latlng'] || 0.0
+          end_lng = run['end_latlng'] || 0.0
+          location_city = run['location_city'] || ''
+          location_state = run['location_state'] || ''
+          location_country = run['location_country'] || ''
+          kudos_count = run['kudos_count'] || 0
+          comment_count = run['comment_count'] || 0
+          photo_count = run['photo_count'] || 0
+          summary_polyline = run['map']['summary_polyline'] || ''
+#          if workout_type.nil?
+#            workout_type=0
+#          end
+          private = run['private'] ? 1 : 0
+          commute = run['commute'] ? 1 : 0
+          if type == 'Run' or type == 'VirtualRun'
+            p "INSERT OR REPLACE INTO log (runid, runnerid, date, distance, time, type, workout_type, commute) VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{moving_time.to_i}, '#{type}', #{workout_type}, #{commute} )"
+            db.execute("INSERT OR REPLACE INTO log (runid, runnerid, date, distance, time, type, workout_type, commute) VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{moving_time.to_i}, '#{type}', #{workout_type}, #{commute} )")
+          end
         end
     else
         print "ERROR: response code #{resp.status}, content: #{resp.content}"
