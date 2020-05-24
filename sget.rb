@@ -54,6 +54,7 @@ db.execute("SELECT runnerid, runnerid, reftoken, runnername, teamid, goal FROM r
     h = {"Authorization" => "Bearer #{token}"}
     #   resp = c.post(url, {"after" => after, "before" => before, "per_page" => 300}, {"Authorization" => "Bearer #{token}"})
     resp = conn.get(url, d, h)
+    i = db.prepare("INSERT OR REPLACE INTO log (runid, runnerid, date, distance, time, type, workout_type, commute, private, start_date_local, timezone, utc_offset, name, elapsed_time, total_elevation_gain, start_latitude, start_longitude, end_latitude, end_longitude, location_city, location_state, location_country, kudos_count, comment_count, photo_count, summary_polyline, gear_id, visibility) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
     if resp.status == 200 then
         j = JSON.parse(resp.content)
         j.each do |run|
@@ -72,8 +73,8 @@ db.execute("SELECT runnerid, runnerid, reftoken, runnername, teamid, goal FROM r
           total_elevation_gain = run['total_elevation_gain'] || 0.0
           start_latitude = run['start_latitude'] || 0.0
           start_longitude = run['start_longitude'] || 0.0
-          end_lat = run['end_latlng'] || 0.0
-          end_lng = run['end_latlng'] || 0.0
+          end_latitude = run['end_latlng'] ? run['end_latlng'][0] : 0.0
+          end_longitude = run['end_latlng'] ? run['end_latlng'][1] : 0.0
           location_city = run['location_city'] || ''
           location_state = run['location_state'] || ''
           location_country = run['location_country'] || ''
@@ -81,14 +82,14 @@ db.execute("SELECT runnerid, runnerid, reftoken, runnername, teamid, goal FROM r
           comment_count = run['comment_count'] || 0
           photo_count = run['photo_count'] || 0
           summary_polyline = run['map']['summary_polyline'] || ''
-#          if workout_type.nil?
-#            workout_type=0
-#          end
+          gear_id = run['gear_id'] || ''
+          visibility = run['visibility'] || ''
           private = run['private'] ? 1 : 0
           commute = run['commute'] ? 1 : 0
           if type == 'Run' or type == 'VirtualRun'
-            p "INSERT OR REPLACE INTO log (runid, runnerid, date, distance, time, type, workout_type, commute) VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{moving_time.to_i}, '#{type}', #{workout_type}, #{commute} )"
-            db.execute("INSERT OR REPLACE INTO log (runid, runnerid, date, distance, time, type, workout_type, commute) VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{moving_time.to_i}, '#{type}', #{workout_type}, #{commute} )")
+#            p "INSERT OR REPLACE INTO log (runid, runnerid, date, distance, time, type, workout_type, commute, private, start_date_local, timezone, utc_offset, name, elapsed_time, total_elevation_gain, start_latitude, start_longitude, end_latitude, end_longitude, location_city, location_state, location_country, kudos_count, comment_count, photo_count, summary_polyline) VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{moving_time.to_i}, '#{type}', #{workout_type}, #{commute}, #{private}, '#{start_date_local}', '#{timezone}', #{utc_offset}, '#{name}', #{elapsed_time}, #{total_elevation_gain}, #{start_latitude}, #{start_longitude}, #{end_latitude}, #{end_longitude}, '#{location_city}', '#{location_state}', '#{location_country}', #{kudos_count}, #{comment_count}, #{photo_count}, '#{summary_polyline}')"
+#            db.execute("INSERT OR REPLACE INTO log (runid, runnerid, date, distance, time, type, workout_type, commute, private, start_date_local, timezone, utc_offset, name, elapsed_time, total_elevation_gain, start_latitude, start_longitude, end_latitude, end_longitude, location_city, location_state, location_country, kudos_count, comment_count, photo_count, summary_polyline) VALUES(#{id}, #{rid}, '#{start_date}', #{distance/1000}, #{moving_time.to_i}, '#{type}', #{workout_type}, #{commute}, #{private}, '#{start_date_local}', '#{timezone}', #{utc_offset}, '#{name}', #{elapsed_time}, #{total_elevation_gain}, #{start_latitude}, #{start_longitude}, #{end_latitude}, #{end_longitude}, '#{location_city}', '#{location_state}', '#{location_country}', #{kudos_count}, #{comment_count}, #{photo_count}, '#{summary_polyline}')")
+            i.execute(id, rid, start_date, distance/1000, moving_time.to_i, type, workout_type, commute, private, start_date_local, timezone, utc_offset, name, elapsed_time, total_elevation_gain, start_latitude, start_longitude, end_latitude, end_longitude, location_city, location_state, location_country, kudos_count, comment_count, photo_count, summary_polyline, gear_id, visibility)
           end
         end
     else
