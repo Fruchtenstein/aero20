@@ -704,12 +704,24 @@ end
      data +=   "    <h1>Тренировки недели</h1>\n"
      data +=   "</center>\n"
      data +=   "<div class=\"datagrid\"><table>\n"
-     data +=   "   <thead><tr><th>Дата</th><th>Имя</th><th>Дистанция (км)</th><th>Время</th><th>Темп</th></tr></thead>\n"
+     data +=   "   <thead><tr><th>Тренировки недели</th></tr></thead>\n"
      data +=   "    <tbody>\n"
-     db.execute("SELECT date, runnername, distance, time, strftime('%M:%S',time/distance,'unixepoch') FROM \
-                       log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow.iso8601}' \
+     db.execute("SELECT date, runnername, distance, time, strftime('%M:%S',time/distance,'unixepoch'), \
+                name, start_date_local, timezone, location_city, location_state, location_country \
+     FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow.iso8601}' \
                        AND date<'#{eow.iso8601}' ORDER BY date DESC") do |t|
-       data += "     <tr><td>#{t[0]}</td><td>#{t[1]}</td><td>#{t[2]}</td><td>#{t[3]}</td><td>#{t[4]}</td>\n"
+       dist = t[2].round(2)
+       d = t[0].to_datetime
+       dd = "#{d.day}.#{d.month}.#{d.year}, #{d.hour}:#{d.min.to_s.rjust(2,"0")}:#{d.sec.to_s.rjust(2,"0")}"
+       hh = t[3] / 3600
+       mm = (t[3] / 60 % 60).to_s.rjust(2,"0")
+       ss = (t[3] % 60).to_s.rjust(2,"0")
+#       data += "     <tr><td>#{t[0]}</td><td>#{t[1]}</td><td>#{t[2]}</td><td>#{t[3]}</td><td>#{t[4]}</td>\n"
+       data += "     <tr><td>\n"
+       data += "      <table border='0'><tr><td width='20%'>#{dd}</td><td width='30%'><b>#{t[1]}</b></td><td>Дистанция:<b>#{t[2].round(2)} км.</b></td><td>Время:<b> #{hh}:#{mm}:#{ss}</b></td><td>Темп:<b>#{t[4]}</b></td></tr></table>\n"
+       data += "      <table border='0'><tr><td>#{t[5]}</td></tr></table>\n"
+       data += "      <table border='0'><tr><td>#{t[8]} #{t[9]} #{t[10]}</td></tr></table>\n"
+       data += "     </td></tr>\n"
      end
 
      data +=   "   </tbody>\n"
