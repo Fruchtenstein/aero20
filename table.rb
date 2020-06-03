@@ -706,21 +706,43 @@ end
      data +=   "<div class=\"datagrid\"><table>\n"
      data +=   "   <thead><tr><th>Тренировки недели</th></tr></thead>\n"
      data +=   "    <tbody>\n"
+     odd = true
      db.execute("SELECT date, runnername, distance, time, strftime('%M:%S',time/distance,'unixepoch'), \
                 name, start_date_local, timezone, location_city, location_state, location_country \
      FROM log, runners WHERE log.runnerid=runners.runnerid AND date>'#{bow.iso8601}' \
                        AND date<'#{eow.iso8601}' ORDER BY date DESC") do |t|
        dist = t[2].round(2)
        d = t[0].to_datetime
-       dd = "#{d.day}.#{d.month}.#{d.year}, #{d.hour}:#{d.min.to_s.rjust(2,"0")}:#{d.sec.to_s.rjust(2,"0")}"
+       dd = "#{d.day}.#{d.month.to_s.rjust(2,"0")}.#{d.year}, #{d.hour}:#{d.min.to_s.rjust(2,"0")}:#{d.sec.to_s.rjust(2,"0")}"
+       t[6] = t[6] || t[0]  # set local time to UTC if local time is not available
+       ld = t[6].to_datetime
+       ldd = "#{ld.day}.#{ld.month.to_s.rjust(2,"0")}.#{ld.year}, #{ld.hour}:#{ld.min.to_s.rjust(2,"0")}:#{ld.sec.to_s.rjust(2,"0")}"
        hh = t[3] / 3600
        mm = (t[3] / 60 % 60).to_s.rjust(2,"0")
        ss = (t[3] % 60).to_s.rjust(2,"0")
+       title = t[5] || ''
+       lcity = t[8] || ''
+       lstate = t[9] || ''
+       lcountry = t[10] || ''
+       place = "#{lcity} #{lstate} #{lcountry}"
 #       data += "     <tr><td>#{t[0]}</td><td>#{t[1]}</td><td>#{t[2]}</td><td>#{t[3]}</td><td>#{t[4]}</td>\n"
-       data += "     <tr><td>\n"
-       data += "      <table border='0'><tr><td width='20%'>#{dd}</td><td width='30%'><b>#{t[1]}</b></td><td>Дистанция:<b>#{t[2].round(2)} км.</b></td><td>Время:<b> #{hh}:#{mm}:#{ss}</b></td><td>Темп:<b>#{t[4]}</b></td></tr></table>\n"
-       data += "      <table border='0'><tr><td>#{t[5]}</td></tr></table>\n"
-       data += "      <table border='0'><tr><td>#{t[8]} #{t[9]} #{t[10]}</td></tr></table>\n"
+       if odd then
+#         odd = false
+         data += "     <tr><td>\n"
+       else
+         odd = true
+         data += "     <tr class='alt'><td>\n"
+       end
+
+#       data += "      <table border='0'><tr><td width='20%'>#{dd}</td><td width='30%'><b>#{t[1]}</b></td><td>Дистанция:<b>#{t[2].round(2)} км.</b></td><td>Время:<b> #{hh}:#{mm}:#{ss}</b></td><td>Темп:<b>#{t[4]}</b></td></tr></table>\n"
+#       data += "      <table border='0'><tr><td>#{t[5]}</td></tr></table>\n"
+#       data += "      <table border='0'><tr><td>#{t[8]} #{t[9]} #{t[10]}</td></tr></table>\n"
+       data += "       <hr />\n"
+       data += "       <table style='border:0px white'><tr><td width='30%'><h4>#{t[1]}</h4></td><td><h4>#{title}</h4></td></tr></table>" 
+       data += "        <table border='0'><tr><td width='30%'><b>Дата:</b></td><td width='30%'><b>Дистанция:</b></td><td><b>Время:</b></td></tr>\n"
+       data += "        <tr><td width='30%'>#{dd}</td><td>#{t[2].round(2)} км.</td><td>#{hh}:#{mm}:#{ss}</td></tr></table>\n"
+       data += "        <table border='0'><tr><td width='30%'><b>Местное время:</b></td><td width='30%'><b>Место:</b></td><td><b>Темп:</b></td></tr>\n"
+       data += "        <tr><td width='30%'>#{ldd}</td><td>#{place}</td><td>#{t[4]}</td></tr></table>\n"
        data += "     </td></tr>\n"
      end
 
