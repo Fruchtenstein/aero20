@@ -220,6 +220,23 @@ runners.each do |r|
     data += "</tbody>\n"
     data += "</table>\n"
 
+    odd = true
+    data2 = ''
+    data2 += "<div class=\"datagrid\"><table>\n"
+    data2 += "  <thead><tr><th>Неделя</th><th>Результат (км)</th><th>Общее время</th><th>Средний темп</th></tr></thead>\n"
+    data2 += "  <tbody>\n"
+    db.execute("SELECT runnerid, week, distance, strftime('%H:%M:%S',time,'unixepoch'), strftime('%M:%S',time/distance,'unixepoch') FROM wlog WHERE runnerid=#{r[0]}") do |wr|
+      if odd then
+        odd = false
+        data2 += "  <tr><td>#{wr[1]}</td><td>#{wr[2].round(2)}</td><td>#{wr[3]}</td><td>#{wr[4]}</td></tr>\n"
+      else
+        odd = true
+        data2 += "  <tr class='alt'><td>#{wr[1]}</td><td>#{wr[2].round(2)}</td><td>#{wr[3]}</td><td>#{wr[4]}</td></tr>\n"
+      end
+    end
+    data2 += "  </tbody>\n"
+    data2 += "</table>\n"
+
     File.open("html/u#{r[0]}.html", 'w') { |f| f.write(user_erb.result(binding)) }
 
     Gnuplot.open do |gp|
