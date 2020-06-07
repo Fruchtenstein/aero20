@@ -17,10 +17,14 @@ def sec2min(sec):
 
 
 now = datetime.date.today()
+week = int(now.strftime("%W")) + 1
+prevweek = week - 1
+dolastweek = now.weekday() < 2
 db = sqlite3.connect('2020.db')
 c1 = db.cursor()
 
 fig, ax = plt.subplots()
+
 
 weeks = [x[0] for x in c1.execute('SELECT DISTINCT week FROM points ORDER BY week').fetchall()]
 teams = c1.execute('SELECT teamid, teamname FROM teams').fetchall()
@@ -30,21 +34,35 @@ for t in teams:
     a = [x[0] for x in c1.execute('SELECT points FROM points WHERE teamid=? ORDER BY week', (t[0],))]
     print(weeks)
     print(a)
-#    plt.title('')
-#    l = plt.subplot(111)
-    #plt.legend(loc='upper center',  shadow=True, ncol=2)
     ax.plot(weeks, np.cumsum(a), label=team)
 handles, labels = ax.get_legend_handles_labels()
 lgd = ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5,-0.1))
-#loc = MultipleLocator(25)
-# ax.yaxis.tick_right()
-# ax.yaxis.set_minor_locator(loc)
-# ax.grid(which='minor')
 ax.grid(which='major', color='gray', linewidth=1)
 ax.grid(which='minor')
 ax.minorticks_on()
-plt.savefig('html/cup.png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+print('Drawing html/cup{}.png'.format(week))
+plt.savefig('html/cup{}.png'.format(week), bbox_extra_artists=(lgd,), bbox_inches='tight')
+plt.close('all')
 
+if dolastweek:
+    fig, ax = plt.subplots()
+    weeks.pop
+    for t in teams:
+        team = t[1]
+        a = [x[0] for x in c1.execute('SELECT points FROM points WHERE teamid=? ORDER BY week', (t[0],))]
+        a.pop
+        print(weeks)
+        print(a)
+        ax.plot(weeks, np.cumsum(a), label=team)
+    handles, labels = ax.get_legend_handles_labels()
+    lgd = ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5,-0.1))
+    ax.grid(which='major', color='gray', linewidth=1)
+    ax.grid(which='minor')
+    ax.minorticks_on()
+    print('Drawing html/cup{}.png'.format(lastweek))
+    plt.savefig('html/cup{}.png'.format(lastweek), bbox_extra_artists=(lgd,), bbox_inches='tight')
+    plt.close('all')
+  
 runners = c1.execute('SELECT * FROM runners').fetchall()
 for r in runners:
     wlog = c1.execute('SELECT week, COALESCE(time,0), COALESCE(distance,0) FROM wlog WHERE runnerid=?', (r[0],)).fetchall()
