@@ -46,11 +46,11 @@ plt.close('all')
 
 if dolastweek:
     fig, ax = plt.subplots()
-    weeks.pop
+    weeks.pop()
     for t in teams:
         team = t[1]
         a = [x[0] for x in c1.execute('SELECT points FROM points WHERE teamid=? ORDER BY week', (t[0],))]
-        a.pop
+        a.pop()
         print(weeks)
         print(a)
         ax.plot(weeks, np.cumsum(a), label=team)

@@ -691,6 +691,28 @@ end
      data +=   "</table>\n"
      data +=   "</div>\n"
      data +=   "<br />\n"
+     data +=   "<center>\n"
+     data +=   "    <br />\n"
+     data +=   "    <br />\n"
+     data +=   "    <h1>Раздача слонов</h1>\n"
+     data +=   "</center>\n"
+     data +=   "<div class=\"datagrid\"><table>\n"
+     data +=   "   <thead><tr><th>Имя</th><th>Команда</th><th>Очки</th></tr></thead>\n"
+     data +=   "    <tbody>\n"
+     x = db.execute("SELECT runnername, COALESCE(teamname, ''), count(*) c FROM wonders w, runners r LEFT JOIN teams t ON r.teamid=t.teamid WHERE w.runnerid=r.runnerid AND w.week<=#{w} GROUP BY w.runnerid ORDER BY c DESC")
+     odd = false
+     x.each do |r|
+       if odd
+         data += "  <tr><td>#{r[0]}</td><td>#{r[1]}</td><td>#{r[2]*2}</td></tr>\n"
+       else
+         data += "  <tr class=\"alt\"><td>#{r[0]}</td><td>#{r[1]}</td><td>#{r[2]*2}</td></tr>\n"
+       end
+       odd = !odd
+     end
+     data +=   "   </tbody>\n"
+     data +=   "</table>\n"
+     data +=   "</div>\n"
+     data +=   "<br />\n"
 
      box  = "<nav class=\"sub\">\n"
      box += "      <ul>\n"
