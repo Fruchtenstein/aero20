@@ -687,6 +687,9 @@ end
      data +=   "    <tr class='alt'><td>Больше всех процентов среди женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2].round(2)}%</td></tr>\n"
 
 
+     x = db.execute(" SELECT teamname, strftime('%M:%S',MIN(time/distance),'unixepoch') FROM teamwlog l, teams t WHERE l.teamid=t.teamid AND week=#{w}")[0]
+     data += "    <tr><td>Самая быстрая команда</td><td></td><td>#{x[0]}</td><td>#{x[1]}</td></tr>\n"
+
      data +=   "   </tbody>\n"
      data +=   "</table>\n"
      data +=   "</div>\n"
