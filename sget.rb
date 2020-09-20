@@ -42,7 +42,7 @@ conn = HTTPClient.new
 db = SQLite3::Database.new(DB)
 url = "https://www.strava.com/api/v3/athlete/activities"
 p url
-db.execute("DELETE FROM log WHERE date>'#{getstart.iso8601}' and date<'#{getend.iso8601}'")
+db.execute("DELETE FROM log WHERE date>'#{getstart.iso8601}' AND date<'#{getend.iso8601}' AND NOT pin")
 
 db.execute("SELECT runnerid, runnerid, reftoken, runnername, teamid, goal FROM runners WHERE reftoken IS NOT NULL") do |r|
     rid, sid, reftoken, rname, tid, goal = r 
@@ -54,7 +54,7 @@ db.execute("SELECT runnerid, runnerid, reftoken, runnername, teamid, goal FROM r
     h = {"Authorization" => "Bearer #{token}"}
     #   resp = c.post(url, {"after" => after, "before" => before, "per_page" => 300}, {"Authorization" => "Bearer #{token}"})
     resp = conn.get(url, d, h)
-    i = db.prepare("INSERT OR REPLACE INTO log (runid, runnerid, date, distance, time, type, workout_type, commute, private, start_date_local, timezone, utc_offset, name, elapsed_time, total_elevation_gain, start_latitude, start_longitude, end_latitude, end_longitude, location_city, location_state, location_country, kudos_count, comment_count, photo_count, summary_polyline, gear_id, visibility) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    i = db.prepare("INSERT OR IGNORE INTO log (runid, runnerid, date, distance, time, type, workout_type, commute, private, start_date_local, timezone, utc_offset, name, elapsed_time, total_elevation_gain, start_latitude, start_longitude, end_latitude, end_longitude, location_city, location_state, location_country, kudos_count, comment_count, photo_count, summary_polyline, gear_id, visibility, pin) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)")
     if resp.status == 200 then
         j = JSON.parse(resp.content)
         j.each do |run|
