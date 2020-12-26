@@ -16,3 +16,4 @@ rsynclog
 *.db
 aeromake.sh
 *.gz
+*.log

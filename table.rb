@@ -4,7 +4,7 @@ require 'sqlite3'
 require 'active_support'
 require 'active_support/core_ext'
 require 'erb'
-require 'gnuplot'
+#require 'gnuplot'
 require_relative './config.rb'
 
 def printweek (w)
@@ -153,16 +153,20 @@ end
 if now > CUP.begin
   w = Date.today.cweek.to_i
   start_cup_week = CUP.begin.to_date.cweek.to_i
-  final_week = start_cup_week + 4
+  final_week = start_cup_week + 8
+  half_week = start_cup_week + 4
   cup_week = w - start_cup_week + 1
-  (1..3).each do |i|
+  (1..7).each do |i|
     cup += "<center>\n"
     cup += "  <br />\n"
-    if i == 3
+    if i == 7
       cup += "  <h1>Финал</h1>"
       calc_week = final_week
+    elsif i.between?(5, 6)
+      cup += "  <h1>Полуфинал #{i-4}</h1>"
+      calc_week = half_week
     else
-      cup += "  <h1>Полуфинал #{i}</h1>"
+      cup += "  <h1>Четвертьфинал #{i}</h1>"
       calc_week = start_cup_week
     end
     cup += "</center>\n"
@@ -178,8 +182,8 @@ if now > CUP.begin
       t2 = db.execute("SELECT teamname FROM teams WHERE teamid=#{teams[1][0]}")[0][0]
     end
     (0..2).each do |n|
-      d1 = (db.execute("SELECT COALESCE(distance,0) FROM cup WHERE teamid=#{teams[0][0]} AND week=#{calc_week+n}")[0] || [0.0])[0]
-      d2 = (db.execute("SELECT COALESCE(distance,0) FROM cup WHERE teamid=#{teams[1][0]} AND week=#{calc_week+n}")[0] || [0.0])[0]
+      d1 = (db.execute("SELECT COALESCE(distance,0) FROM teamwlog WHERE teamid=#{teams[0][0]} AND week=#{calc_week+n}")[0] || [0.0])[0]
+      d2 = (db.execute("SELECT COALESCE(distance,0) FROM teamwlog WHERE teamid=#{teams[1][0]} AND week=#{calc_week+n}")[0] || [0.0])[0]
       if n == 1
         cup += "    <tr class=\"alt\"><td rowspan=\"2\">#{n+1}</td><td>#{t1}</td><td>#{d1.round(2)}</td></tr>\n"
         cup += "    <tr class=\"alt\"><td>#{t2}</td><td>#{d2.round(2)}</td></tr>\n"
@@ -221,78 +225,95 @@ runners.each do |r|
     data += "</tbody>\n"
     data += "</table>\n"
 
+    odd = true
+    data2 = ''
+    data2 += "<div class=\"datagrid\"><table>\n"
+    data2 += "  <thead><tr><th>Неделя</th><th>Результат (км)</th><th>Общее время</th><th>Средний темп</th></tr></thead>\n"
+    data2 += "  <tbody>\n"
+    db.execute("SELECT runnerid, week, distance, strftime('%H:%M:%S',time,'unixepoch'), strftime('%M:%S',time/distance,'unixepoch') FROM wlog WHERE runnerid=#{r[0]}") do |wr|
+      if odd then
+        odd = false
+        data2 += "  <tr><td>#{wr[1]}</td><td>#{wr[2].round(2)}</td><td>#{wr[3]}</td><td>#{wr[4]}</td></tr>\n"
+      else
+        odd = true
+        data2 += "  <tr class='alt'><td>#{wr[1]}</td><td>#{wr[2].round(2)}</td><td>#{wr[3]}</td><td>#{wr[4]}</td></tr>\n"
+      end
+    end
+    data2 += "  </tbody>\n"
+    data2 += "</table>\n"
+
     File.open("html/u#{r[0]}.html", 'w') { |f| f.write(user_erb.result(binding)) }
 
-    Gnuplot.open do |gp|
-        Gnuplot::Plot.new(gp) do |plot|
-            plot.terminal "png"
-            plot.output File.expand_path("../html/u#{r[0]}.png", __FILE__)
-            plot.title "Километраж по неделям"
-	    plot.key "bmargin"
-            weeks = [*1..(Date.today.cweek)]
-            plot.xrange "[1:#{weeks[-1]}]"
-            plot.xlabel 'Недели'
-            plot.ylabel 'Км'
-            plot.ytics ''
-            plot.grid 'y'
-            a = [0]
-            weeks.each do |w|
-                bow = DateTime.parse(Date.commercial(2020,w).to_s).beginning_of_week.iso8601
-                eow = DateTime.parse(Date.commercial(2020,w).to_s).end_of_week.iso8601
-                d = db.execute("SELECT SUM(distance) FROM log WHERE runnerid=#{r[0]} AND date>'#{bow}' AND date<'#{eow}'")[0][0]
-                a += d.nil?? [0] : [d]
-            end
-            norm = (7*r[5]/365).round(2)
-            ymax = [a.max*1.1, norm*1.1].max
-            plot.yrange "[0:#{ymax}]"
-            p "+++++ #{r[0]} #{r[1]} ",weeks, a
-            plot.data << Gnuplot::DataSet.new( a ) do |ds|
-                ds.with = "lines lt rgb \"red\""
-                ds.linewidth = 2
-                ds.title = r[1]
-            end
-            plot.data << Gnuplot::DataSet.new(norm.to_s) do |ds|
-                ds.with = "lines lt rgb \"blue\""
-                ds.linewidth = 1
-                ds.title = "Норма=#{norm.to_s} км"
-            end
-	end
-    end
-    Gnuplot.open do |gp|
-        Gnuplot::Plot.new(gp) do |plot|
-            p "----------------- norm plot"
-            plot.terminal "png"
-            plot.output File.expand_path("../html/w#{r[0]}.png", __FILE__)
-            plot.title "Выполнение нормы"
-	    plot.key "bmargin"
-            weeks = [*1..(Date.today.cweek)]
-            plot.xrange "[1:#{weeks[-1]}]"
-            plot.xlabel 'Недели'
-            plot.ylabel 'Км'
-            plot.ytics ''
-            plot.grid 'y'
-            a = [0]
-            weeks.each do |w|
-                bow = DateTime.parse(Date.commercial(2020,w).to_s).beginning_of_week.iso8601
-                eow = DateTime.parse(Date.commercial(2020,w).to_s).end_of_week.iso8601
-                d = db.execute("SELECT SUM(distance) FROM log WHERE runnerid=#{r[0]} AND date<'#{eow}'")[0][0]
-                a += d.nil?? [0] : [d]
-            end
-            plot.yrange "[0:#{a.max*1.1}]"
-            p "+++++ #{r[0]} #{r[1]} ",weeks, a
-            plot.data << Gnuplot::DataSet.new( a ) do |ds|
-                ds.with = "lines lt rgb \"red\""
-                ds.linewidth = 2
-                ds.title = r[1]+"="+a[-1].round(2).to_s+" км"
-            end
-            norm = (7*r[5]/365).round(2)
-            plot.data << Gnuplot::DataSet.new(norm.to_s+"*x") do |ds|
-                ds.with = "lines lt rgb \"blue\""
-                ds.linewidth = 1
-                ds.title = "Норма=#{(norm*(a.length-1)).round(2)} км"
-            end
-	end
-    end
+#    Gnuplot.open do |gp|
+#        Gnuplot::Plot.new(gp) do |plot|
+#            plot.terminal "png"
+#            plot.output File.expand_path("../html/u#{r[0]}.png", __FILE__)
+#            plot.title "Километраж по неделям"
+#	    plot.key "bmargin"
+#            weeks = [*1..(Date.today.cweek)]
+#            plot.xrange "[1:#{weeks[-1]}]"
+#            plot.xlabel 'Недели'
+#            plot.ylabel 'Км'
+#            plot.ytics ''
+#            plot.grid 'y'
+#            a = [0]
+#            weeks.each do |w|
+#                bow = DateTime.parse(Date.commercial(2020,w).to_s).beginning_of_week.iso8601
+#                eow = DateTime.parse(Date.commercial(2020,w).to_s).end_of_week.iso8601
+#                d = db.execute("SELECT SUM(distance) FROM log WHERE runnerid=#{r[0]} AND date>'#{bow}' AND date<'#{eow}'")[0][0]
+#                a += d.nil?? [0] : [d]
+#            end
+#            norm = (7*r[5]/365).round(2)
+#            ymax = [a.max*1.1, norm*1.1].max
+#            plot.yrange "[0:#{ymax}]"
+#            p "+++++ #{r[0]} #{r[1]} ",weeks, a
+#            plot.data << Gnuplot::DataSet.new( a ) do |ds|
+#                ds.with = "lines lt rgb \"red\""
+#                ds.linewidth = 2
+#                ds.title = r[1]
+#            end
+#            plot.data << Gnuplot::DataSet.new(norm.to_s) do |ds|
+#                ds.with = "lines lt rgb \"blue\""
+#                ds.linewidth = 1
+#                ds.title = "Норма=#{norm.to_s} км"
+#            end
+#	end
+#    end
+#    Gnuplot.open do |gp|
+#        Gnuplot::Plot.new(gp) do |plot|
+#            p "----------------- norm plot"
+#            plot.terminal "png"
+#            plot.output File.expand_path("../html/w#{r[0]}.png", __FILE__)
+#            plot.title "Выполнение нормы"
+#	    plot.key "bmargin"
+#            weeks = [*1..(Date.today.cweek)]
+#            plot.xrange "[1:#{weeks[-1]}]"
+#            plot.xlabel 'Недели'
+#            plot.ylabel 'Км'
+#            plot.ytics ''
+#            plot.grid 'y'
+#            a = [0]
+#            weeks.each do |w|
+#                bow = DateTime.parse(Date.commercial(2020,w).to_s).beginning_of_week.iso8601
+#                eow = DateTime.parse(Date.commercial(2020,w).to_s).end_of_week.iso8601
+#                d = db.execute("SELECT SUM(distance) FROM log WHERE runnerid=#{r[0]} AND date<'#{eow}'")[0][0]
+#                a += d.nil?? [0] : [d]
+#            end
+#            plot.yrange "[0:#{a.max*1.1}]"
+#            p "+++++ #{r[0]} #{r[1]} ",weeks, a
+#            plot.data << Gnuplot::DataSet.new( a ) do |ds|
+#                ds.with = "lines lt rgb \"red\""
+#                ds.linewidth = 2
+#                ds.title = r[1]+"="+a[-1].round(2).to_s+" км"
+#            end
+#            norm = (7*r[5]/365).round(2)
+#            plot.data << Gnuplot::DataSet.new(norm.to_s+"*x") do |ds|
+#                ds.with = "lines lt rgb \"blue\""
+#                ds.linewidth = 1
+#                ds.title = "Норма=#{(norm*(a.length-1)).round(2)} км"
+#            end
+#	end
+#    end
 end
 
 ### Process users.html
@@ -671,6 +692,53 @@ end
      data +=   "    <tr class='alt'><td>Больше всех процентов среди женщин</td><td><a href='http://aerobia.net/u#{x[0]}.html'>#{x[1]}</a></td><td>#{x[3]}</td><td>#{x[2].round(2)}%</td></tr>\n"
 
 
+     x = db.execute(" SELECT teamname, strftime('%M:%S',MIN(time/distance),'unixepoch') FROM teamwlog l, teams t WHERE l.teamid=t.teamid AND week=#{w}")[0]
+     data += "    <tr><td>Самая быстрая команда</td><td></td><td>#{x[0]}</td><td>#{x[1]}</td></tr>\n"
+
+     data +=   "   </tbody>\n"
+     data +=   "</table>\n"
+     data +=   "</div>\n"
+     data +=   "<br />\n"
+     data +=   "<center>\n"
+     data +=   "    <br />\n"
+     data +=   "    <br />\n"
+     data +=   "    <h1>Раздача слонов за год</h1>\n"
+     data +=   "    <h2>командам</h2>\n"
+     data +=   "</center>\n"
+     data +=   "<div class=\"datagrid\"><table>\n"
+     data +=   "   <thead><tr><th>Команда</th><th>Очки</th></tr></thead>\n"
+     data +=   "    <tbody>\n"
+     x = db.execute("SELECT COALESCE(teamname, ''), count(*) c FROM wonders w LEFT JOIN teams t ON w.teamid=t.teamid WHERE w.week<=#{w} GROUP BY w.teamid ORDER BY c DESC")
+     odd = false
+     x.each do |r|
+       if odd
+         data += "  <tr><td>#{r[0]}</td><td>#{r[1]*2}</td></tr>\n"
+       else
+         data += "  <tr class=\"alt\"><td>#{r[0]}</td><td>#{r[1]*2}</td></tr>\n"
+       end
+       odd = !odd
+     end
+     data +=   "   </tbody>\n"
+     data +=   "</table>\n"
+     data +=   "</div>\n"
+     data +=   "<center>\n"
+     data +=   "    <br />\n"
+     data +=   "    <br />\n"
+     data +=   "    <h2>и участникам</h2>\n"
+     data +=   "</center>\n"
+     data +=   "<div class=\"datagrid\"><table>\n"
+     data +=   "   <thead><tr><th>Имя</th><th>Команда</th><th>Очки</th></tr></thead>\n"
+     data +=   "    <tbody>\n"
+     x = db.execute("SELECT runnername, COALESCE(teamname, ''), count(*) c FROM runners r, wonders w LEFT JOIN teams t ON w.teamid=t.teamid WHERE w.runnerid=r.runnerid AND w.week<=#{w} GROUP BY w.runnerid ORDER BY c DESC")
+     odd = false
+     x.each do |r|
+       if odd
+         data += "  <tr><td>#{r[0]}</td><td>#{r[1]}</td><td>#{r[2]*2}</td></tr>\n"
+       else
+         data += "  <tr class=\"alt\"><td>#{r[0]}</td><td>#{r[1]}</td><td>#{r[2]*2}</td></tr>\n"
+       end
+       odd = !odd
+     end
      data +=   "   </tbody>\n"
      data +=   "</table>\n"
      data +=   "</div>\n"
@@ -765,31 +833,31 @@ end
      File.open("html/feed#{w}.html", 'w') { |f| f.write(feed_erb.result(binding)) }
 end
 
-(CHAMP.begin.to_date.cweek..Date.today.cweek).each do |w|
-    p "plot for week #{w}"
-    Gnuplot.open do |gp|
-        Gnuplot::Plot.new(gp) do |plot|
-            plot.terminal "png"
-            plot.output File.expand_path("../html/cup#{w}.png", __FILE__)
-            plot.title 'Кубок'
-	    plot.key "bmargin"
-            weeks = db.execute("SELECT DISTINCT week FROM points WHERE week <= #{w} ORDER BY week").map { |i| i[0] }
-            plot.xrange "[1:#{weeks[-1]}]"
-            plot.xlabel 'Недели'
-            plot.ylabel 'Очки'
-            plot.ytics ''
-            plot.grid 'y'
-            (1..TEAMS).each do |t|
-                team = db.execute("SELECT teamname FROM teams WHERE teamid=#{t}")[0][0]
-                a = [0] + db.execute("SELECT teamid, week, (SELECT SUM(points) FROM points WHERE week<=p.week AND teamid=p.teamid) FROM points p WHERE teamid=#{t} AND week <= #{w} ORDER BY week").map { |i| i[2] }
-                p weeks, a
-		plot.data << Gnuplot::DataSet.new( a ) do |ds|
-		    ds.with = "lines"
-		    ds.linewidth = 2
-		    ds.title = team
-		end
-	    end
-	end
-    end
-end
-
+#(CHAMP.begin.to_date.cweek..Date.today.cweek).each do |w|
+#    p "plot for week #{w}"
+#    Gnuplot.open do |gp|
+#        Gnuplot::Plot.new(gp) do |plot|
+#            plot.terminal "png"
+#            plot.output File.expand_path("../html/cup#{w}.png", __FILE__)
+#            plot.title 'Кубок'
+#	    plot.key "bmargin"
+#            weeks = db.execute("SELECT DISTINCT week FROM points WHERE week <= #{w} ORDER BY week").map { |i| i[0] }
+#            plot.xrange "[1:#{weeks[-1]}]"
+#            plot.xlabel 'Недели'
+#            plot.ylabel 'Очки'
+#            plot.ytics ''
+#            plot.grid 'y'
+#            (1..TEAMS).each do |t|
+#                team = db.execute("SELECT teamname FROM teams WHERE teamid=#{t}")[0][0]
+#                a = [0] + db.execute("SELECT teamid, week, (SELECT SUM(points) FROM points WHERE week<=p.week AND teamid=p.teamid) FROM points p WHERE teamid=#{t} AND week <= #{w} ORDER BY week").map { |i| i[2] }
+#                p weeks, a
+#		plot.data << Gnuplot::DataSet.new( a ) do |ds|
+#		    ds.with = "lines"
+#		    ds.linewidth = 2
+#		    ds.title = team
+#		end
+#	    end
+#	end
+#    end
+#end
+#
